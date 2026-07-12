@@ -13,90 +13,60 @@
             text-align: center; 
             background: transparent; 
             margin: 0; 
-            padding: 10px; 
+            padding: 0; 
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
         }
+        
+        /* 1. กล่องตารางบันทึกผล (จัดตำแหน่งให้อยู่ตรงกลางจอฝั่งซ้ายพอดี) */
         .table-box {
             background: rgba(255, 255, 255, 0.98);
             padding: 15px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            max-width: 550px;
-            margin: 0 auto;
-        }
-        .title {
-            font-family: 'Itim', cursive;
-            font-size: 22px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 12px;
+            width: 500px;
+            position: absolute;
+            top: 50%;
+            left: 20px; /* ขยับให้อยู่ฝั่งซ้ายตรงหน้าจอมอนิเตอร์พอดี */
+            transform: translateY(-50%);
         }
         
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-            background: white;
-        }
-        th, td {
-            border: 2px solid #4a4a4a;
-            padding: 10px 5px;
-            font-size: 16px;
-            text-align: center;
-            vertical-align: middle;
-        }
-        th {
-            background-color: #f2f2f2;
-            color: #333;
-            font-weight: bold;
-        }
+        .title { font-family: 'Itim', cursive; font-size: 22px; font-weight: bold; color: #333; margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; background: white; }
+        th, td { border: 2px solid #4a4a4a; padding: 10px 5px; font-size: 16px; text-align: center; }
+        th { background-color: #f2f2f2; color: #333; }
         .header-set { color: #d32f2f; font-weight: bold; }
         .header-measured { color: #2f80ed; font-weight: bold; }
-        
-        .val-display {
-            font-family: 'Itim', cursive;
-            font-size: 24px;
-            color: #1b66c9;
-            font-weight: normal;
-        }
-        .set-display {
-            font-family: 'Itim', cursive;
-            font-size: 24px;
-            color: #d32f2f;
-            font-weight: normal;
-        }
-        
-        /* สไตล์สำหรับตอนที่ค่ายังไม่ถูกเปิดเผย */
-        .waiting {
-            color: #aaa !important;
-            font-weight: bold;
+        .val-display { font-family: 'Itim', cursive; font-size: 24px; color: #1b66c9; }
+        .set-display { font-family: 'Itim', cursive; font-size: 24px; color: #d32f2f; }
+        .waiting { color: #aaa !important; }
+
+        button.next-btn { 
+            font-family: 'Prompt', sans-serif; padding: 10px 25px; border: none; border-radius: 6px; 
+            font-size: 16px; font-weight: bold; cursor: pointer; background: #2f80ed; color: white; 
         }
 
-        .btn-zone {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-        button {
-            font-family: 'Prompt', sans-serif;
-            padding: 10px 25px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
+        /* 2. สร้างพื้นที่ปุ่ม Shoot ล่องหน (Invisible Button) */
+        .invisible-shoot-zone {
+            position: absolute;
+            /* ⚠️ คุณสามารถมาปรับขยับ ตำแหน่งกว้างสูง ตรงนี้ให้ตรงกับปุ่มรีโมทในรูป Genially ของคุณได้เลยครับ */
+            top: 45%;      
+            right: 40px;    
+            width: 80px;    
+            height: 80px;   
+            border-radius: 50%;
+            background: rgba(255, 0, 0, 0); /* เปลี่ยน 0 เป็น 0.3 ตอนตั้งตำแหน่ง เพื่อให้เห็นกรอบสีแดงชั่วคราวได้ครับ */
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 9999;
         }
-        button.shoot-btn { background: #27ae60; color: white; }
-        button.shoot-btn:hover { background: #219653; }
-        button.next-btn { background: #2f80ed; color: white; }
-        button.next-btn:hover { background: #1b66c9; }
     </style>
 </head>
 <body>
 
     <div class="table-box">
         <div class="title">ตารางบันทึกผลการทดสอบ</div>
-        
         <table>
             <tr>
                 <th rowspan="2" class="header-set" style="width: 30%;">Exposure time ที่ตั้ง<br>(msec)</th>
@@ -115,73 +85,49 @@
             </tr>
         </table>
         
-        <div class="btn-zone">
-            <button class="shoot-btn" id="iframeShootBtn" onclick="revealValues()">กดปุ่ม Shoot ⚡</button>
-            <button class="next-btn" id="nextBtn" onclick="goToNextStage()" style="display: none;">ไปหน้าถัดไป ➡️</button>
-        </div>
+        <button class="next-btn" id="nextBtn" onclick="goToNextStage()" style="display: none;">ไปหน้าถัดไป ➡️</button>
     </div>
 
+    <div id="shootTrigger" class="invisible-shoot-zone" onclick="revealValues()"></div>
+
     <script>
-        // ประกาศตัวแปรเก็บค่าสุ่มที่ถูกคำนวณเตรียมไว้ล่วงหน้า (เพื่อไม่ให้เปลี่ยนค่าไปมา)
-        var finalS1 = "-";
-        var finalS2 = "-";
-        var finalS3 = "-";
-        var isRevealed = false;
+        var finalS1 = "-", finalS2 = "-", finalS3 = "-", isRevealed = false;
 
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const stage = urlParams.get('stage');
             var setVal = 20; 
-            
             if (stage) {
                 setVal = parseInt(stage);
                 document.getElementById('setTime').innerText = setVal;
             }
-
-            // แอบคำนวณและล็อกค่าสุ่ม 3 ค่านี้ไว้ในระบบตั้งแต่แรกเปิดหน้าเว็บ แต่ยังไม่ยอมแสดงผล
             finalS1 = getRandomMeasured(setVal);
             finalS2 = getRandomMeasured(setVal);
             finalS3 = getRandomMeasured(setVal);
         };
 
-        // ฟังก์ชันคำนวณสุ่มค่าคลาดเคลื่อนทางรังสี (+- ไม่เกิน 2.5%)
         function getRandomMeasured(baseVal) {
             var randomPercent = (Math.random() * 5) - 2.5; 
             var finalVal = baseVal + (baseVal * (randomPercent / 100));
             return finalVal.toFixed(2);
         }
 
-        // ฟังก์ชันเปิดเผยค่าสุ่ม (จะทำงานเมื่อมีการกด Shoot)
         function revealValues() {
-            if (isRevealed) return; // ป้องกันการกดซ้ำแล้วค่าเปลี่ยน
+            if (isRevealed) return;
             
-            // นำค่าวัดสุ่มที่ล็อกไว้ตั้งแต่โหลดหน้ามาแสดงผลลงในตาราง
             var s1El = document.getElementById('shot1');
             var s2El = document.getElementById('shot2');
             var s3El = document.getElementById('shot3');
 
-            s1El.innerText = finalS1;
-            s2El.innerText = finalS2;
-            s3El.innerText = finalS3;
+            s1El.innerText = finalS1; s2El.innerText = finalS2; s3El.innerText = finalS3;
+            s1El.classList.remove('waiting'); s2El.classList.remove('waiting'); s3El.classList.remove('waiting');
 
-            // เอาสไตล์ตัวขีดสลัวออก ให้กลายเป็นฟอนต์ Itim สีน้ำเงินคมชัด
-            s1El.classList.remove('waiting');
-            s2El.classList.remove('waiting');
-            s3El.classList.remove('waiting');
-
-            // ซ่อนปุ่ม Shoot และสลับเอาปุ่ม "ไปหน้าถัดไป" ขึ้นมาให้เดินเกมต่อ
-            document.getElementById('iframeShootBtn').style.display = 'none';
             document.getElementById('nextBtn').style.display = 'inline-block';
             
+            // ปิดการใช้งานปุ่มล่องหนหลังกดแล้ว
+            document.getElementById('shootTrigger').style.display = 'none';
             isRevealed = true;
         }
-
-        // 🔗 ระบบสำรอง: รอรับสัญญาณสั่งกด Shoot จากฝั่งปุ่มภาพเครื่องเอกซเรย์ของ Genially ดั้งเดิมด้วย
-        window.addEventListener('message', function(event) {
-            if (event.data === 'geniallyShootPressed') {
-                revealValues();
-            }
-        });
 
         function goToNextStage() {
             window.parent.postMessage('next', '*');
