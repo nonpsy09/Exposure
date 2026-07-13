@@ -23,12 +23,12 @@
         .workspace-container {
             position: relative;
             width: 100%;
-            max-width: 1000px;
+            max-width: 1050px; /* <--- เพิ่มพื้นที่ขยายจาก 1000px เป็น 1050px */
             height: 500px;
             margin: 0 auto;
         }
 
-        /* ตารางบันทึกผล */
+        /* กล่องตารางบันทึกผล (ขยับชิดซ้ายสุด) */
         .table-box {
             background: rgba(255, 255, 255, 0.98);
             padding: 15px;
@@ -37,7 +37,7 @@
             width: 480px;
             position: absolute;
             top: 50%;
-            left: 10px; 
+            left: 5px; /* <--- เปลี่ยนจาก 20px เป็น 5px เพื่อดึงตารางหลบไปชิดซ้ายสุด */
             transform: translateY(-50%);
         }
         
@@ -56,13 +56,13 @@
             font-size: 16px; font-weight: bold; cursor: pointer; background: #2f80ed; color: white; 
         }
 
-        /* เครื่องคอนโซลควบคุม */
+        /* เครื่องคอนโซลควบคุมหลัก (ขยับชิดขวาสุด) */
         .console-wrapper {
             position: absolute;
             top: 50%;
-            right: 20px;
+            right: 5px; /* <--- เปลี่ยนจาก 20px เป็น 5px เพื่อดึงเครื่องหลบไปชิดขวาสุด */
             transform: translateY(-50%);
-            width: 1500px;  
+            width: 800px; /* ขนาดเครื่องใหญ่เท่าเดิมที่คุณตั้งไว้ */
             height: auto;
         }
 
@@ -148,7 +148,8 @@
         function startExposure() {
             if (isRevealed) return;
             isRevealed = true; // ล็อกไม่ให้กดซ้ำ
-            
+            // สลับรูปคอนโซลนิ่ง -> เปลี่ยนเป็นภาพ GIF เคลื่อนไหว (console_ani.gif)
+            document.getElementById('consoleMain').src = 'console_ani.gif';
             // ซ่อนหรือจางปุ่ม Shoot ลงขณะเครื่องทำงาน
             document.getElementById('shootTrigger').style.opacity = '0.3';
             document.getElementById('shootTrigger').style.cursor = 'default';
