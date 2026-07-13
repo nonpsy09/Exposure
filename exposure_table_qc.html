@@ -23,12 +23,12 @@
         .workspace-container {
             position: relative;
             width: 100%;
-            max-width: 1050px; /* <--- เพิ่มพื้นที่ขยายจาก 1000px เป็น 1050px */
+            max-width: 1050px;
             height: 500px;
             margin: 0 auto;
         }
 
-        /* กล่องตารางบันทึกผล (ขยับชิดซ้ายสุด) */
+        /* ตารางบันทึกผล */
         .table-box {
             background: rgba(255, 255, 255, 0.98);
             padding: 15px;
@@ -37,7 +37,7 @@
             width: 480px;
             position: absolute;
             top: 50%;
-            left: 5px; /* <--- เปลี่ยนจาก 20px เป็น 5px เพื่อดึงตารางหลบไปชิดซ้ายสุด */
+            left: 5px; 
             transform: translateY(-50%);
         }
         
@@ -56,13 +56,13 @@
             font-size: 16px; font-weight: bold; cursor: pointer; background: #2f80ed; color: white; 
         }
 
-        /* เครื่องคอนโซลควบคุมหลัก (ขยับชิดขวาสุด) */
+        /* เครื่องคอนโซลควบคุม */
         .console-wrapper {
             position: absolute;
             top: 50%;
-            right: 5px; /* <--- เปลี่ยนจาก 20px เป็น 5px เพื่อดึงเครื่องหลบไปชิดขวาสุด */
+            right: 5px;
             transform: translateY(-50%);
-            width: 1000px; /* ขนาดเครื่องใหญ่เท่าเดิมที่คุณตั้งไว้ */
+            width: 900px;  
             height: auto;
         }
 
@@ -72,19 +72,55 @@
             display: block;
         }
 
-        /* ปุ่ม Shoot */
-        .shoot-image-btn {
+        /* 🛠️ ส่วนสร้างปุ่ม Shoot ดิจิทัลด้วยโค้ด CSS (สีเหลืองส้มสไตล์ปุ่มเครื่องเอกซเรย์จริง) */
+        .css-shoot-btn {
             position: absolute;
-            top: 25%;       /* ปรับระดับความสูงต่ำบนเครื่องคอนโซล */
-            right: 15px;    /* ปรับระยะขยับซ้ายขวา */
-            width: 55px;    
+            
+            /* ⚠️ ปรับเล็งตำแหน่งปุ่มให้ไปทับปุ่มบนตัวเครื่องคอนโซลตรงนี้ครับ */
+            top: 45%;       /* ปรับเปอร์เซ็นต์ขึ้น-ลง */
+            right: 60px;    /* ปรับระยะขยับ ซ้าย-ขวา */
+            
+            width: 45px;    /* ขนาดความกว้างปุ่ม */
+            height: 45px;   /* ขนาดความสูงปุ่ม (เท่ากันเพื่อให้เป็นวงกลมเป๊ะ) */
+            
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff9f43, #ee5253); /* สีส้มอมแดงแบบสวิตช์รังสี */
+            border: 3px solid #333;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.4);
             cursor: pointer;
-            transition: transform 0.1s, filter 0.2s;
+            transition: all 0.1s ease;
             z-index: 9999;
         }
         
-        .shoot-image-btn:hover { filter: brightness(1.2); transform: scale(1.05); }
-        .shoot-image-btn:active { transform: scale(0.95); }
+        /* เอฟเฟกต์ตอนเอาเมาส์ไปชี้ปุ่ม */
+        .css-shoot-btn:hover {
+            filter: brightness(1.15);
+            box-shadow: 0 5px 8px rgba(0,0,0,0.4), 0 0 10px rgba(255, 159, 67, 0.5);
+        }
+        
+        /* เอฟเฟกต์เวลากดคลิกปุ่ม ให้ปุ่มยุบลงไปจริง */
+        .css-shoot-btn:active {
+            transform: scale(0.92);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.5), inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 🎬 แอนิเมชันปุ่มกระพริบไฟสีแดงเตือนตอนเครื่องทำงาน (X-Ray ON) */
+        .button-exposing {
+            animation: radiation-glow 0.4s infinite alternate;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        @keyframes radiation-glow {
+            from {
+                background: #ee5253;
+                filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.8));
+            }
+            to {
+                background: #ff3838;
+                filter: drop-shadow(0 0 20px #ff3b30) brightness(1.4);
+            }
+        }
     </style>
 </head>
 <body>
@@ -115,17 +151,23 @@
         </div>
 
         <div class="console-wrapper">
-            <img id="consoleMain" class="console-img" src="console_bg.png" alt="X-Ray Console">
+            <img id="consoleMain" class="console-img" src="" alt="X-Ray Console">
             
-            <img id="shootTrigger" class="shoot-image-btn" src="shoot_button.png" alt="Shoot Button" onclick="startExposure()">
+            <div id="shootTrigger" class="css-shoot-btn" onclick="startExposure()"></div>
         </div>
 
     </div>
 
     <script>
         var finalS1 = "-", finalS2 = "-", finalS3 = "-", isRevealed = false;
+        var currentPath = "";
 
         window.onload = function() {
+            currentPath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+            
+            // เรียกเฉพาะภาพตัวเครื่องหลักที่มีอยู่แล้วบน GitHub ครับ
+            document.getElementById('consoleMain').src = currentPath + "console_bg.png";
+
             const urlParams = new URLSearchParams(window.location.search);
             const stage = urlParams.get('stage');
             var setVal = 20; 
@@ -144,22 +186,20 @@
             return finalVal.toFixed(2);
         }
 
-        // 1. ฟังก์ชันเมื่อกด Shoot: เริ่มเล่น GIF และปิดการกดซ้ำ
         function startExposure() {
             if (isRevealed) return;
-            isRevealed = true; // ล็อกไม่ให้กดซ้ำ
-            // สลับรูปคอนโซลนิ่ง -> เปลี่ยนเป็นภาพ GIF เคลื่อนไหว (console_ani.gif)
-            document.getElementById('consoleMain').src = 'console_ani.gif';
-            // ซ่อนหรือจางปุ่ม Shoot ลงขณะเครื่องทำงาน
-            document.getElementById('shootTrigger').style.opacity = '0.3';
-            document.getElementById('shootTrigger').style.cursor = 'default';
+            isRevealed = true; 
 
-            // ⏱️ หน่วงเวลาให้ GIF เล่นก่อน (ตั้งไว้ที่ 1500 มิลลิวินาที หรือ 1.5 วินาที)
-            // คุณสามารถเปลี่ยนเลข 1500 เป็นตัวเลขอื่นได้ตามความยาวของไฟล์ GIF ของคุณครับ
-            setTimeout(revealValues, 4000);
+            // สลับเป็นภาพ GIF คอนโซลเคลื่อนไหว
+            document.getElementById('consoleMain').src = currentPath + 'console_ani.gif';
+            
+            // เปิดเอฟเฟกต์ไฟกระพริบเตือนรังสีสีแดงที่ตัวปุ่ม CSS ทันที
+            document.getElementById('shootTrigger').classList.add('button-exposing');
+
+            // หน่วงเวลา 1.5 วินาทีรอแอนิเมชันวิ่งเสร็จ
+            setTimeout(revealValues, 1500);
         }
 
-        // 2. ฟังก์ชันแสดงค่าในตาราง (จะทำงานหลังจาก GIF เล่นตามเวลาที่กำหนดเสร็จแล้ว)
         function revealValues() {
             var s1El = document.getElementById('shot1');
             var s2El = document.getElementById('shot2');
@@ -168,12 +208,13 @@
             s1El.innerText = finalS1; s2El.innerText = finalS2; s3El.innerText = finalS3;
             s1El.classList.remove('waiting'); s2El.classList.remove('waiting'); s3El.classList.remove('waiting');
 
-            // แสดงปุ่มไปหน้าถัดไป
             document.getElementById('nextBtn').style.display = 'inline-block';
             
-            // (เลือกเปิดไว้) เมื่อยิงรังสีเสร็จ สามารถปล่อยให้ค้างที่รูป GIF หรือจะสั่งให้สลับกลับมาเป็นรูปนิ่ง console_bg.png ก็ได้ครับ
-            // ถ้าอยากให้กลับมาเป็นรูปนิ่ง ให้เอาเครื่องหมาย // บรรทัดข้างล่างนี้ออกครับ
-            // document.getElementById('consoleMain').src = 'console_bg.png';
+            // เมื่อยิงเสร็จ ให้ดับไฟกระพริบ และเปลี่ยนปุ่มเป็นสีเทาเพื่อแสดงว่าใช้ไปแล้ว
+            document.getElementById('shootTrigger').classList.remove('button-exposing');
+            document.getElementById('shootTrigger').style.background = '#bdc3c7';
+            document.getElementById('shootTrigger').style.border = '3px solid #7f8c8d';
+            document.getElementById('shootTrigger').style.boxShadow = 'none';
         }
 
         function goToNextStage() {
